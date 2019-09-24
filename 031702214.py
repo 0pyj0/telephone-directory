@@ -11,115 +11,116 @@ import numpy as np
 
 
 f=open('eg.txt',"r")
-#text=f.read()
-ll=str(f.readlines())
-#length=len(text.splitlines())
+mlist=str(f.readline())
 f.close()
 
-ll.split('\\n')
-from ast import literal_eval
+mlist.split('\\n')
+#from ast import literal_eval
+#mlist=literal_eval(ll)#将文件中的内容转换为list
 
-mlist=literal_eval(ll)#将文件中的内容转换为list
-#print(mlist)
 url = "https://restapi.amap.com/v3/geocode/geo?key=6a6615350026e24aa1c159785e70a709" #使用高德API
 
-i=0
-while i>=0:
-    name=mlist[i].split(",")[0]
-    #print(type(name))
-    phonenum=re.findall('\d{11}',mlist[i])
-    phonenum=''.join(phonenum)       #print(type(phonenum))
 
-    print(name,"    ",phonenum)        
+name=mlist.split(",")[0]
+#print(type(name))
+phonenum=re.findall('\d{11}',mlist)
+phonenum=''.join(phonenum)       #print(type(phonenum))
 
-    mlist[i]=re.sub(name,'',mlist[i],1)#去掉姓名
-    mlist[i]=re.sub(phonenum,'',mlist[i],1)#去掉电话
-    #mlist[i]=re.sub(',','',mlist[i],1)#去掉逗号
+print(name,"    ",phonenum)        
 
-    mlist[i]=''.join(mlist[i])  #将list转为string
+mlist=re.sub(name,'',mlist,1)#去掉姓名
+mlist=re.sub(phonenum,'',mlist,1)#去掉电话
+#mlist=re.sub(',','',mlist[i],1)#去掉逗号
+
+mlist=''.join(mlist)  #将list转为string
     
-    urlweb = url + "&address=" + mlist[i]  #urlweb为完整API请求链接
-    alldata = requests.get(urlweb).text  #webdata为网站返回数据包
-    content = json.loads(alldata)  #将json转换为字典
+urlweb = url + "&address=" + mlist  #urlweb为完整API请求链接
+alldata = requests.get(urlweb).text  #webdata为网站返回数据包
+content = json.loads(alldata)  #将json转换为字典
   
-    positon = content["geocodes"][0]["location"] #geocodes为地理编码信息列表，location为坐标点，两者用于逆地理编码
-    rurl = "https://restapi.amap.com/v3/geocode/regeo?output=JSON&key=6a6615350026e24aa1c159785e70a709&radius=100&extensions=base"
-    rurlweb = rurl + "&location=" + positon #逆地理编码API
-    respond = requests.get(rurlweb).text #返回详细地理信息
-    respond = json.loads(respond) #格式转化
-    #print(respond)
+positon = content["geocodes"][0]["location"] #geocodes为地理编码信息列表，location为坐标点，两者用于逆地理编码
+rurl = "https://restapi.amap.com/v3/geocode/regeo?output=JSON&key=6a6615350026e24aa1c159785e70a709&radius=100&extensions=base"
+rurlweb = rurl + "&location=" + positon #逆地理编码API
+respond = requests.get(rurlweb).text #返回详细地理信息
+respond = json.loads(respond) #格式转化
+#print(respond)
 
-    province=content["geocodes"][0]["province"]
-    pro=province
-    if province=='':#直辖市
-        province=content["geocodes"][0]["province"]#直辖市即省份
-    city = content["geocodes"][0]["city"]  #geocodes为地理编码信息列表
-    ci=city
-    if city=='':#直辖市
-        city=content["geocodes"][0]["province"]#直辖市即城市
+province=content["geocodes"][0]["province"]
+pro=province
+if province=='':#直辖市
+    province=content["geocodes"][0]["province"]#直辖市即省份
+city = content["geocodes"][0]["city"]  #geocodes为地理编码信息列表
+ci=city
+if city=='':#直辖市
+    city=content["geocodes"][0]["province"]#直辖市即城市
 
-    district=content["geocodes"][0]["district"]#geocodes为地理编码信息列表，district为地址所在的区
-    dis=district
-    rd=re.search(district,mlist[i])
+district=content["geocodes"][0]["district"]#geocodes为地理编码信息列表，district为地址所在的区
+dis=district
     
-    town = respond["regeocode"]["addressComponent"]["township"] #regeocode为逆地理编码，addressComponent为地址元素列表，town坐标点所在乡镇/街道
-    tow=town
-    rt = re.search( town, mlist[i]) #匹配地址
+town = respond["regeocode"]["addressComponent"]["township"] #regeocode为逆地理编码，addressComponent为地址元素列表，town坐标点所在乡镇/街道
+tow=town
+rt = re.search( town, mlist) #匹配地址
 
 
-    mlist=list(mlist)
-    mlist[i]=re.sub(',','',mlist[i],1)   #去掉,
-    string=''.join(mlist[i][0:-2])
-    mlist[i]=string   #这两步是去掉.的
+mlist=re.sub(',','',mlist,1)   #去掉,
+string=''.join(mlist[0:-2])
+mlist=string   #这两步是去掉.的
     
 
-    flist=mlist[i]
-    flist=re.sub(province,'',mlist[i],1)#去掉province,  这里flist,mlist[i]用str形式的
-    if flist==mlist[i]:
-        mlist[i]=list(mlist[i])
+flist=mlist
+if province:
+    flist=re.sub(province,'',mlist,1)#去掉province,  这里flist,mlist[i]用str形式的
+    if flist==mlist:
+        mlist=list(mlist)
         flist=list(flist)
         province=list(province)
-        h=0
-        while province[h]==mlist[i][h]:
-            mlist[i].pop(0)
+        while province[0]==mlist[0]:
+            mlist.pop(0)
             province.pop(0)
-        mlist[i]=''.join(mlist[i])
+        mlist=''.join(mlist)
         flist=''.join(flist)
     else:
-        mlist[i]=flist  #有“省”字的，可以直接用函数去掉的情况
-        
+        mlist=flist  #有“省”字的，可以直接用函数去掉的情况
+else:
+    pro=''#province没有的情况,为了不输出[]
 
-    flist=re.sub(city,'',mlist[i],1)#去掉city
-    if flist==mlist[i]:
-        mlist[i]=list(mlist[i])
+if city:         
+    flist=re.sub(city,'',mlist,1)#去掉city
+    if flist==mlist:
+        mlist=list(mlist)
         flist=list(flist)
         city=list(city)
-        h=0
-        while city[h]==mlist[i][h]:
-            mlist[i].pop(0)
+        while city[0]==mlist[0]:
+            mlist.pop(0)
             city.pop(0)
-        mlist[i]=''.join(mlist[i])
+        mlist=''.join(mlist)
     else:
-        mlist[i]=flist  #有“市”字的，可以直接用函数去掉的情况
+        mlist=flist  #有“市”字的，可以直接用函数去掉的情况
+else:
+    ci=''#city没有的情况,为了不输出[]
 
-
-
-
-    mlist[i]=re.sub(district,'',mlist[i],1)#去掉district    
-    mlist[i]=re.sub(town,'',mlist[i],1)#去掉town
-    string=''.join(mlist[i])
-    #string=''.join(mlist[i][0:-2])
-    print(pro)
-    print(ci)
-    print(dis)
-    print(tow)
-    print(string)
-
-    #df=cpca.transform(mlist[i])
-
-
-
-    if i==4:
-        break
-    i=i+1
     
+if district:
+    mlist=re.sub(district,'',mlist,1)#去掉district    
+else:
+    dis=''#district没有的情况,为了不输出[]
+    
+if town!=None:
+    mlist=re.sub(town,'',mlist,1)#去掉town
+else:
+    tow=''#town没有的情况,为了不输出[]
+
+string=mlist
+    
+
+final={"姓名":name,"手机":phonenum,"地址":[pro,ci,dis,tow,string]}#现在就是dict型的
+#print(pro)
+#print(ci)
+#print(dis)
+#print(tow)
+#print(string)
+final=str(final)
+print(final)
+out=open('output.txt','w')
+out.write(final)
+out.close()
