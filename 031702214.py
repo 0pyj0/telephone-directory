@@ -176,49 +176,52 @@ def fseven():
     final["地址"]=finallist
 
     
-mlist=input()
+try:
+    mlist=input()
 
-mlist.split('\\n')
-#from ast import literal_eval
-#mlist=literal_eval(ll)#将文件中的内容转换为list
+    mlist.split('\\n')
+    #from ast import literal_eval
+    #mlist=literal_eval(ll)#将文件中的内容转换为list
 
-url = "https://restapi.amap.com/v3/geocode/geo?key=6a6615350026e24aa1c159785e70a709" #使用高德API
+    url = "https://restapi.amap.com/v3/geocode/geo?key=6a6615350026e24aa1c159785e70a709" #使用高德API
 
 
-kind=int(mlist[0])
-mlist=list(mlist)
-mlist.pop(0)#去掉难度等级
-mlist.pop(0)#去掉!
-mlist=''.join(mlist)
+    kind=int(mlist[0])
+    mlist=list(mlist)
+    mlist.pop(0)#去掉难度等级
+    mlist.pop(0)#去掉!
+    mlist=''.join(mlist)
 
-fname();
-fphonenum();
+    fname();
+    fphonenum();
     
-urlweb = url + "&address=" + mlist  #urlweb为完整API请求链接
-alldata = requests.get(urlweb).text  #webdata为网站返回数据包
-content = json.loads(alldata)  #将json转换为字典
+    urlweb = url + "&address=" + mlist  #urlweb为完整API请求链接
+    alldata = requests.get(urlweb).text  #webdata为网站返回数据包
+    content = json.loads(alldata)  #将json转换为字典
   
-positon = content["geocodes"][0]["location"] #geocodes为地理编码信息列表，location为坐标点，两者用于逆地理编码
-rurl = "https://restapi.amap.com/v3/geocode/regeo?output=JSON&key=6a6615350026e24aa1c159785e70a709&radius=100&extensions=base"
-rurlweb = rurl + "&location=" + positon #逆地理编码API
-respond = requests.get(rurlweb).text #返回详细地理信息
-respond = json.loads(respond) #格式转化
+    positon = content["geocodes"][0]["location"] #geocodes为地理编码信息列表，location为坐标点，两者用于逆地理编码
+    rurl = "https://restapi.amap.com/v3/geocode/regeo?output=JSON&key=6a6615350026e24aa1c159785e70a709&radius=100&extensions=base"
+    rurlweb = rurl + "&location=" + positon #逆地理编码API
+    respond = requests.get(rurlweb).text #返回详细地理信息
+    respond = json.loads(respond) #格式转化
 
-mlist=re.sub(',','',mlist,1)   #去掉,
-string=''.join(mlist[0:-1])
-mlist=string   #这两步是去掉.的
+    mlist=re.sub(',','',mlist,1)   #去掉,
+    string=''.join(mlist[0:-1])
+    mlist=string   #这两步是去掉.的
 
-fprovince();#划分省份
-fcity();#划分城市
-fdistrict();#划分城区/县城
-ftown();#划分乡镇
+    fprovince();#划分省份
+    fcity();#划分城市
+    fdistrict();#划分城区/县城
+    ftown();#划分乡镇
 
 
-if kind==1:
-    ffive();
-else:
-    froad();
-    fdoornum();
-    fseven();
-#print(final)
-print(json.dumps(final))
+    if kind==1:
+        ffive();
+    else:
+        froad();
+        fdoornum();
+        fseven();
+    #print(final)
+    print(json.dumps(final))
+except IOError:
+    print("Error:输入输出失败")
